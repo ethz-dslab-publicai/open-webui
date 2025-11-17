@@ -15,6 +15,9 @@
 	import Skeleton from '../Messages/Skeleton.svelte';
 	import { chatId, models, socket } from '$lib/stores';
 
+	// NEW: feedback modal import
+	import InteractiveFeedback from '$lib/components/chat/InteractiveFeedback.svelte';
+
 	export let id = '';
 	export let messageId = '';
 
@@ -33,6 +36,10 @@
 	let responseContent = null;
 	let responseDone = false;
 	let controller = null;
+
+	// NEW: feedback modal state
+	let feedbackOpen = false;
+	let feedbackProps = null;
 
 	$: if (actions.length === 0) {
 		actions = DEFAULT_ACTIONS;
@@ -222,6 +229,56 @@
 		});
 	};
 
+	// NEW: central handler for action button clicks (replaces inline handler)
+	const handleActionButtonClick = async (action) => {
+		selectedText = window.getSelection().toString();
+		selectedAction = action;
+
+		// Special-case Share Feedback
+		if (action?.id === 'share_feedback' || (action?.type === 'interactive' && action?.id === 'share_feedback')) {
+			feedbackProps = {
+				action,
+				messages,
+				model,
+				messageId
+			};
+			feedbackOpen = true;
+			return;
+		}
+
+		if (action.prompt && action.prompt.includes('{{INPUT_CONTENT}}')) {
+			floatingInput = true;
+			floatingInputValue = '';
+
+			await tick();
+			setTimeout(() => {
+				const input = document.getElementById('floating-message-input');
+				if (input) {
+					input.focus();
+				}
+			}, 0);
+		} else {
+			actionHandler(action.id);
+		}
+	};
+
+	const onFeedbackSubmit = (e) => {
+		const p = e.detail?.payload;
+		// Optionally insert a short confirmation message into chat
+		onAdd({
+			modelId: model,
+			parentId: messageId,
+			messages: messages.concat([{ role: 'user', content: `Feedback submitted: rating ${p?.rating ?? ''}` }])
+		});
+		feedbackOpen = false;
+		feedbackProps = null;
+	};
+
+	const onFeedbackClose = () => {
+		feedbackOpen = false;
+		feedbackProps = null;
+	};
+
 	export const closeHandler = () => {
 		if (controller) {
 			controller.abort();
@@ -233,6 +290,8 @@
 		responseDone = false;
 		floatingInput = false;
 		floatingInputValue = '';
+		feedbackOpen = false;
+		feedbackProps = null;
 	};
 
 	onDestroy(() => {
@@ -256,23 +315,8 @@
 					<button
 						class="px-1.5 py-[1px] hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center gap-1 min-w-fit transition"
 						on:click={async () => {
-							selectedText = window.getSelection().toString();
-							selectedAction = action;
-
-							if (action.prompt.includes('{{INPUT_CONTENT}}')) {
-								floatingInput = true;
-								floatingInputValue = '';
-
-								await tick();
-								setTimeout(() => {
-									const input = document.getElementById('floating-message-input');
-									if (input) {
-										input.focus();
-									}
-								}, 0);
-							} else {
-								actionHandler(action.id);
-							}
+							// delegate to central handler
+							await handleActionButtonClick(action);
 						}}
 					>
 						{#if action.icon}
@@ -360,5 +404,10 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	<!-- NEW: feedback modal overlay -->
+	{#if feedbackOpen && feedbackProps}
+		<InteractiveFeedback {feedbackProps} on:submit={onFeedbackSubmit} on:close={onFeedbackClose} />
 	{/if}
 </div>

@@ -206,7 +206,11 @@
 		bind:this={floatingButtonsElement}
 		{id}
 		{messageId}
-		actions={$settings?.floatingActionButtons ?? []}
+		actions={[
+			{ id: 'ask', label: $i18n.t('Ask'), input: true, prompt: `{{SELECTED_CONTENT}}\n\n\n{{INPUT_CONTENT}}` },
+			{ id: 'explain', label: $i18n.t('Explain'), prompt: `{{SELECTED_CONTENT}}\n\n\n${$i18n.t('Explain')}` },
+			{ id: 'share_feedback', label: 'Share Feedback', type: 'interactive', prompt: 'Share your feedback' }
+		]}
 		model={(selectedModels ?? []).includes(model?.id)
 			? model?.id
 			: (selectedModels ?? []).length > 0
