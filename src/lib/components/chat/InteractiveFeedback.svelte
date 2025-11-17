@@ -33,15 +33,6 @@
     let include_chat_preview = false;
     let expanded = false;
 
-    interactiveProps = {
-    messages: [
-        { role: "user", content: "Hello?" },
-        { role: "assistant", content: "Hi there!" },
-        { role: "user", content: "How are you?" },
-        { role: "assistant", content: "Fine and you?" },
-        { role: "user", content: "Fine" }
-    ]
-    };
 
 	// prefill from context (optional)
 	onMount(() => {
