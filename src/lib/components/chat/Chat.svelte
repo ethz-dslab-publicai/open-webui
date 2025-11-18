@@ -96,6 +96,7 @@
 	import Tooltip from '../common/Tooltip.svelte';
 	import Sidebar from '../icons/Sidebar.svelte';
 	import Image from '../common/Image.svelte';
+	import DataContributionDialog from './DataContributionDialog.svelte';
 
 	export let chatIdProp = '';
 
@@ -120,6 +121,8 @@
 	let eventConfirmationInputPlaceholder = '';
 	let eventConfirmationInputValue = '';
 	let eventCallback = null;
+
+	let showDataContributionDialog = false;
 
 	let chatIdUnsubscriber: Unsubscriber | undefined;
 
@@ -463,6 +466,9 @@
 					eventConfirmationMessage = data.message;
 					eventConfirmationInputPlaceholder = data.placeholder;
 					eventConfirmationInputValue = data?.value ?? '';
+				} else if (type === 'data_contribution') {
+					eventCallback = cb;
+					showDataContributionDialog = true;
 				} else {
 					console.log('Unknown message type', data);
 				}
@@ -2374,6 +2380,24 @@
 	inputValue={eventConfirmationInputValue}
 	on:confirm={(e) => {
 		if (e.detail) {
+			eventCallback(e.detail);
+		} else {
+			eventCallback(true);
+		}
+	}}
+	on:cancel={() => {
+		eventCallback(false);
+	}}
+/>
+
+<DataContributionDialog
+	bind:show={showDataContributionDialog}
+	on:confirm={(e) => {
+		if (e.detail) {
+
+			// NOTE: This is the data that gets sent back to the action. It can
+			// be anything we want, such as an object with the user's sharing
+			// choices.
 			eventCallback(e.detail);
 		} else {
 			eventCallback(true);
