@@ -123,6 +123,8 @@
 	let eventCallback = null;
 
 	let showDataContributionDialog = false;
+	let eventContributionChatlog = null;
+	let eventContributionPiiCountsPerMessage = null;
 
 	let chatIdUnsubscriber: Unsubscriber | undefined;
 
@@ -469,6 +471,8 @@
 				} else if (type === 'data_contribution') {
 					eventCallback = cb;
 					showDataContributionDialog = true;
+					eventContributionChatlog = data.redacted_chatlog ? JSON.parse(data.redacted_chatlog) : null;
+					eventContributionPiiCountsPerMessage = data.pii_counts_per_message ? JSON.parse(data.pii_counts_per_message) : null;
 				} else {
 					console.log('Unknown message type', data);
 				}
@@ -2392,6 +2396,8 @@
 
 <DataContributionDialog
 	bind:show={showDataContributionDialog}
+	chatlog={eventContributionChatlog}
+	piiCountsPerMessage={eventContributionPiiCountsPerMessage}
 	on:confirm={(e) => {
 		if (e.detail) {
 

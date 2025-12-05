@@ -10,7 +10,7 @@
             You submitted a data contribution on {dayjs(contributionStatus.timestamp).format('LLLL')}.
         </p>
         <p>
-            You can view the status of your contribution via the ID: <a href="#">{contributionStatus.contribution_id}</a>. Thank you for helping to improve our models!
+            You can view the status of your contribution via the ID: <a href="{contributionStatus.pr_url}">{contributionStatus.contribution_id}</a>. Thank you for helping to improve our models!
         </p>
         <!-- <p class="mt-1 text-center">
             Thank you for helping to improve our models!
