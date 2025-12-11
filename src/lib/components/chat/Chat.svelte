@@ -96,6 +96,7 @@
 	import Tooltip from '../common/Tooltip.svelte';
 	import Sidebar from '../icons/Sidebar.svelte';
 	import Image from '../common/Image.svelte';
+	import DataContributionDialog from './DataContributionDialog.svelte';
 
 	export let chatIdProp = '';
 
@@ -120,6 +121,10 @@
 	let eventConfirmationInputPlaceholder = '';
 	let eventConfirmationInputValue = '';
 	let eventCallback = null;
+
+	let showDataContributionDialog = false;
+	let eventContributionChatlog = null;
+	let eventContributionPiiCountsPerMessage = null;
 
 	let chatIdUnsubscriber: Unsubscriber | undefined;
 
@@ -463,6 +468,11 @@
 					eventConfirmationMessage = data.message;
 					eventConfirmationInputPlaceholder = data.placeholder;
 					eventConfirmationInputValue = data?.value ?? '';
+				} else if (type === 'data_contribution') {
+					eventCallback = cb;
+					showDataContributionDialog = true;
+					eventContributionChatlog = data.redacted_chatlog ? JSON.parse(data.redacted_chatlog) : null;
+					eventContributionPiiCountsPerMessage = data.pii_counts_per_message ? JSON.parse(data.pii_counts_per_message) : null;
 				} else {
 					console.log('Unknown message type', data);
 				}
@@ -2374,6 +2384,26 @@
 	inputValue={eventConfirmationInputValue}
 	on:confirm={(e) => {
 		if (e.detail) {
+			eventCallback(e.detail);
+		} else {
+			eventCallback(true);
+		}
+	}}
+	on:cancel={() => {
+		eventCallback(false);
+	}}
+/>
+
+<DataContributionDialog
+	bind:show={showDataContributionDialog}
+	chatlog={eventContributionChatlog}
+	piiCountsPerMessage={eventContributionPiiCountsPerMessage}
+	on:confirm={(e) => {
+		if (e.detail) {
+
+			// NOTE: This is the data that gets sent back to the action. It can
+			// be anything we want, such as an object with the user's sharing
+			// choices.
 			eventCallback(e.detail);
 		} else {
 			eventCallback(true);

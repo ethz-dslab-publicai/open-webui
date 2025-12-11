@@ -62,6 +62,7 @@
 	import RegenerateMenu from './ResponseMessage/RegenerateMenu.svelte';
 	import StatusHistory from './ResponseMessage/StatusHistory.svelte';
 	import FullHeightIframe from '$lib/components/common/FullHeightIframe.svelte';
+	import DataContributionStatus from '../DataContributionStatus.svelte';
 
 	interface MessageType {
 		id: string;
@@ -1476,6 +1477,11 @@
 							/>
 						</div>
 					{/if}
+
+					{#if message?.contribution_status?.status}
+						<DataContributionStatus contributionStatus={message?.contribution_status} />
+					{/if}
+
 				{/if}
 			</div>
 		</div>
