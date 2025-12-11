@@ -30,15 +30,19 @@
 
 	let rating_tags : string[] = [];
 	const available_rating_tags = [
-		"Relevant answer",
-		"Too short",
+		"Accurate information",
+		"Positive attitude",
+		"Clear explanation",
+		"Showed creativity",
+		"Followed instructions",
+		"Too short / vague",
 		"Too long / wordy",
-		"Helpful reasoning",
-		"Poor reasoning",
-		"Incorrect",
-		"Partially correct",
-		"Unclear",
-		"Off-topic"
+		"Incorrect information",
+		"Offensive content",
+		"Off-topic",
+		"Refused to answer",
+		"Being lazy",
+		"Not helpful",
 	];
 
 	let usage_model_training = true;
@@ -269,7 +273,7 @@
 			class="
 				ml-auto relative
 				h-auto max-h-[90vh]
-				w-full max-w-sm
+				w-full max-w-md
 				bg-white dark:bg-gray-850
 				shadow-2xl rounded-xl
 				overflow-y-auto
@@ -419,33 +423,43 @@
 								</div>
 							</div>
 						</div>
-					</div>
-
-					<!-- Rating tags -->
-					<div class="mt-4">
-						<h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-							Tags
-						</h4>
-
-						<div class="flex flex-wrap gap-2">
-							{#each available_rating_tags as tag}
+						<!-- Rating tags -->
+						<div class="mt-4">
+							<h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+								Tags
+							</h4>
+							<div class="border rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50  relative">
 								<button
 									type="button"
-									class="px-2 py-1 rounded-full text-xs border transition
-										{rating_tags.includes(tag)
-											? 'bg-blue-600 text-white border-blue-600'
-											: 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'}"
-									on:click={() => {
-										rating_tags = rating_tags.includes(tag)
-											? rating_tags.filter(t => t !== tag)
-											: [...rating_tags, tag];
-									}}
+									class="text-gray-600 underline text-xs hover:text-blue-800 mb-2  absolute bottom-0 right-[1em] bg-gray-50"
+									on:click={() => expanded = !expanded}
 								>
-									{tag}
+									{expanded ? "Hide" : "Show more"}
 								</button>
-							{/each}
+
+								<div class="flex flex-wrap gap-2 {expanded ? '' : 'max-h-12 overflow-hidden'}">
+									{#each available_rating_tags as tag}
+										<button
+											type="button"
+											class="px-2 py-1 rounded-full text-xs border transition
+												{rating_tags.includes(tag)
+													? 'bg-blue-600 text-white border-blue-600'
+													: 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'}"
+											on:click={() => {
+												rating_tags = rating_tags.includes(tag)
+													? rating_tags.filter(t => t !== tag)
+													: [...rating_tags, tag];
+											}}
+										>
+											{tag}
+										</button>
+									{/each}
+								</div>
+							</div>
 						</div>
+
 					</div>
+
 
 
 					<!-- ───────────────────── DATA USAGE ───────────────────── -->
@@ -485,13 +499,13 @@
 
 					<!-- ───────────────────── COMMENTS ───────────────────── -->
 					<div class="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-						<h3 class="text-sm font-semibold pb-1">Additional Comments</h3>
+						<h3 class="text-sm font-semibold pb-1">Additional comments</h3>
 						<textarea rows="2" bind:value={comments} class="w-full mt-2 p-2 rounded border" placeholder="Anything else to share? (optional)"></textarea>
 					</div>
 
 					<!-- ───────────────────── CHAT PREVIEW BUTTON ───────────────────── -->
 					<div class="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-						<h3 class="text-sm font-semibold pb-1">Chatlog</h3>
+						<h3 class="text-sm font-semibold pb-1">Data to be shared</h3>
 						{#if piiCountsPerMessage && Object.keys(piiCountsPerMessage).length > 0}
 							{@const aggregatedPii = Object.values(piiCountsPerMessage).reduce((acc, msgPii) => {
 								Object.entries(msgPii || {}).forEach(([type, count]) => {
@@ -572,9 +586,10 @@
 										</div>
 
 										<div class="text-sm leading-relaxed whitespace-pre-wrap">
-											{typeof m.content === "string"
+											{@html (typeof m.content === "string"
 												? m.content
-												: m.content?.text ?? JSON.stringify(m.content)}
+												: m.content?.text ?? JSON.stringify(m.content))
+												.replace(/==\<(\w+)\>==/g, '<mark>$1</mark>')}
 										</div>
 									</div>
 									<!-- Show thumb feedback for this message -->
@@ -584,7 +599,7 @@
 												Feedback
 											</div>
 											<div class="text-sm leading-relaxed whitespace-pre-wrap">
-												{JSON.stringify(m.feedback)}
+												{JSON.stringify(m.feedback, null, 2)}
 											</div>
 										</div>
 									{/if}
